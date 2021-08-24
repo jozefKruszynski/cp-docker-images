@@ -4,13 +4,15 @@
 # Bump this on subsequent build, reset on new version or public release. Inherit from env for CI builds.
 BUILD_NUMBER ?= 1
 
-CONFLUENT_MAJOR_VERSION ?= 5
-CONFLUENT_MINOR_VERSION ?= 3
-CONFLUENT_PATCH_VERSION ?= 3
+CONFLUENT_MAJOR_VERSION ?= 6
+CONFLUENT_MINOR_VERSION ?= 2
+CONFLUENT_PATCH_VERSION ?= 0
 
 CONFLUENT_VERSION ?= ${CONFLUENT_MAJOR_VERSION}.${CONFLUENT_MINOR_VERSION}.${CONFLUENT_PATCH_VERSION}
 
-KAFKA_VERSION ?= 5.3.3
+KAFKA_VERSION ?= 6.2.0
+
+DOCKER_UTILS_VERSION ?= 5.3.3
 
 COMPONENTS := base zookeeper kafka server kafka-rest schema-registry kafka-connect-base kafka-connect server-connect-base server-connect enterprise-control-center kafkacat enterprise-replicator enterprise-replicator-executable enterprise-kafka kafka-mqtt
 COMMIT_ID := $(shell git rev-parse --short HEAD)
@@ -49,7 +51,7 @@ clean-images:
 debian/base/include/etc/confluent/docker/docker-utils.jar:
 	mkdir -p debian/base/include/etc/confluent/docker
 	mvn -U clean compile package -DskipTests \
-	&& cp target/docker-utils-${CONFLUENT_VERSION}${CONFLUENT_MVN_LABEL}-jar-with-dependencies.jar debian/base/include/etc/confluent/docker/docker-utils.jar
+	&& cp target/docker-utils-${DOCKER_UTILS_VERSION}-jar-with-dependencies.jar debian/base/include/etc/confluent/docker/docker-utils.jar
 
 build-debian: debian/base/include/etc/confluent/docker/docker-utils.jar
 	COMPONENTS="${COMPONENTS}" \
@@ -158,3 +160,5 @@ test-all: \
 	test-schema-registry \
 	test-kafka-rest \
 	test-control-center
+
+.PHONY: debian/base/include/etc/confluent/docker/docker-utils.jar

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:jessie
+FROM arm64v8/debian:bullseye
 
 ARG COMMIT_ID=unknown
 LABEL io.confluent.docker.git.id=$COMMIT_ID
@@ -30,8 +30,8 @@ MAINTAINER partner-support@confluent.io
 LABEL io.confluent.docker=true
 
 # Python
-ENV PYTHON_VERSION="2.7.9-1"
-ENV PYTHON_PIP_VERSION="8.1.2"
+ENV PYTHON_VERSION="2.7"
+ENV PYTHON_PIP_VERSION="9.0.3"
 
 # Confluent
 ENV SCALA_VERSION="2.12"
@@ -56,43 +56,43 @@ ENV CONFLUENT_VERSION="$CONFLUENT_MAJOR_VERSION.$CONFLUENT_MINOR_VERSION.$CONFLU
 ENV CONFLUENT_DEB_VERSION="1"
 
 # Zulu
-ENV ZULU_OPENJDK_VERSION="8=8.38.0.13"
+ENV ZULU_OPENJDK_VERSION="8.56.0.23"
 
 # This affects how strings in Java class files are interpreted.  We want UTF-8 and this is the only locale in the
 # base image that supports it
 ENV LANG="C.UTF-8"
 
 RUN echo "===> Updating debian ....." \
-    # TODO debian jessie has been deprecated and is only ex
-    && echo "deb http://archive.debian.org/debian/ jessie main" > /etc/apt/sources.list \
-    && echo "deb http://security.debian.org jessie/updates main" >> /etc/apt/sources.list \
-    && apt-get -qq update \
-    \
+    && apt-get update \
     && echo "===> Installing curl wget netcat python...." \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
                 apt-transport-https \
+                gnupg \
                 curl \
-                gnupg-curl \
                 git \
                 wget \
                 netcat \
-                python=${PYTHON_VERSION} \
-    && echo "===> Installing python packages ..."  \
-    && curl -fSL "https://bootstrap.pypa.io/get-pip.py" | python \
+                python${PYTHON_VERSION} \
+    && echo "===> Installing python packages ..." \
+    && ln -s /usr/bin/python2.7 /usr/bin/python \
+    && curl -fSL "https://bootstrap.pypa.io/pip/2.7/get-pip.py" | python \
     && pip install --no-cache-dir --upgrade pip==${PYTHON_PIP_VERSION} \
+    && pip install setuptools \
     && pip install --no-cache-dir git+https://github.com/confluentinc/confluent-docker-utils@v0.0.20 \
     && apt remove --purge -y git \
     && echo "Installing Zulu OpenJDK ${ZULU_OPENJDK_VERSION}" \
-    && apt-key adv --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys 0x27BC0C8CB3D81623F59BDADCB1998361219BD9C9 \
-    && echo "deb http://repos.azulsystems.com/debian stable  main" >> /etc/apt/sources.list.d/zulu.list \
-    && apt-get -qq update \
-    && apt-get -y install zulu-${ZULU_OPENJDK_VERSION} \
+    && cd /opt && wget https://cdn.azul.com/zulu-embedded/bin/zulu${ZULU_OPENJDK_VERSION}-ca-jdk8.0.302-linux_aarch64.tar.gz \
+    && tar -xvzf zulu*tar.gz \
+    && mv zulu${ZULU_OPENJDK_VERSION}-ca-jdk8.0.302-linux_aarch64 jdk8 \
     && echo "===> Installing Kerberos Patch ..." \
     && DEBIAN_FRONTEND=noninteractive apt-get -y install krb5-user \
     && rm -rf /var/lib/apt/lists/* \
     && echo "===> Adding confluent repository...${CONFLUENT_PACKAGES_REPO}/deb/${CONFLUENT_MAJOR_VERSION}.${CONFLUENT_MINOR_VERSION}" \
     && if [ "x$ALLOW_UNSIGNED" = "xtrue" ]; then echo "APT::Get::AllowUnauthenticated \"true\";" > /etc/apt/apt.conf.d/allow_unauthenticated; else curl -L ${CONFLUENT_PACKAGES_REPO}/deb/${CONFLUENT_MAJOR_VERSION}.${CONFLUENT_MINOR_VERSION}/archive.key | apt-key add - ; fi \
     && echo "deb [arch=amd64] ${CONFLUENT_PACKAGES_REPO}/deb/${CONFLUENT_MAJOR_VERSION}.${CONFLUENT_MINOR_VERSION} stable main" >> /etc/apt/sources.list
+
+ENV JAVA_HOME=/opt/jdk8
+ENV PATH=$JAVA_HOME/bin:$PATH
 
 ENV CUB_CLASSPATH=/etc/confluent/docker/docker-utils.jar
 COPY include/etc/confluent/docker /etc/confluent/docker

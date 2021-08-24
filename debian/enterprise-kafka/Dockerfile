@@ -38,7 +38,7 @@ RUN echo "===> installing confluent-rebalancer ..." \
     && echo "===> Setting up ${COMPONENT} dirs..." \
     && mkdir -p /var/lib/${COMPONENT}/data /etc/${COMPONENT}/secrets\
     && chmod -R ag+w /etc/${COMPONENT} /var/lib/${COMPONENT}/data /etc/${COMPONENT}/secrets \
-    && chown -R root:root /var/log/kafka /var/log/confluent /var/lib/kafka /var/lib/zookeeper
+    && chown -R root:root /var/lib/kafka
 
 VOLUME ["/var/lib/${COMPONENT}/data", "/etc/${COMPONENT}/secrets"]
 
