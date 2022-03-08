@@ -56,7 +56,7 @@ ENV CONFLUENT_VERSION="$CONFLUENT_MAJOR_VERSION.$CONFLUENT_MINOR_VERSION.$CONFLU
 ENV CONFLUENT_DEB_VERSION="1"
 
 # Zulu
-ENV ZULU_OPENJDK_VERSION="8.56.0.23"
+ENV ZULU_OPENJDK_VERSION="11.54.25"
 
 # This affects how strings in Java class files are interpreted.  We want UTF-8 and this is the only locale in the
 # base image that supports it
@@ -81,9 +81,9 @@ RUN echo "===> Updating debian ....." \
     && pip install --no-cache-dir git+https://github.com/confluentinc/confluent-docker-utils@v0.0.20 \
     && apt remove --purge -y git \
     && echo "Installing Zulu OpenJDK ${ZULU_OPENJDK_VERSION}" \
-    && cd /opt && wget https://cdn.azul.com/zulu-embedded/bin/zulu${ZULU_OPENJDK_VERSION}-ca-jdk8.0.302-linux_aarch64.tar.gz \
+    && cd /opt && wget https://cdn.azul.com/zulu-embedded/bin/zulu${ZULU_OPENJDK_VERSION}-ca-jdk11.0.14.1-linux_aarch64.tar.gz \
     && tar -xvzf zulu*tar.gz \
-    && mv zulu${ZULU_OPENJDK_VERSION}-ca-jdk8.0.302-linux_aarch64 jdk8 \
+    && mv zulu${ZULU_OPENJDK_VERSION}-ca-jdk11.0.14.1-linux_aarch64 jdk8 \
     && echo "===> Installing Kerberos Patch ..." \
     && DEBIAN_FRONTEND=noninteractive apt-get -y install krb5-user \
     && rm -rf /var/lib/apt/lists/* \
